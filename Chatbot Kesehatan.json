@@ -1,0 +1,161 @@
+{
+  "name": "Chatbot Kesehatan",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        0
+      ],
+      "id": "9400db00-f138-49ec-9f0e-518ceb02b021",
+      "name": "Telegram Trigger",
+      "webhookId": "84d96ee0-d080-49fc-8984-a1d0d8436870",
+      "credentials": {
+        "telegramApi": {
+          "id": "IBLr0vfA6NDj0hnG",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "Kamu adalah asisten virtual medis dan layanan informasi kesehatan pendukung di \"RS Sehat Sentosa\". Tugasmu adalah memberikan edukasi kesehatan awal, informasi umum penyakit, pencegahan, serta panduan poliklinik berdasarkan keluhan pasien.\n\nConstraints & Safety Rules\n1. Jangan pernah mendiagnosis penyakit secara mutlak atau meresepkan obat keras.\n2. Selalu ingatkan pengguna bahwa informasi ini bersifat edukasi awal dan mereka harus berkonsultasi langsung dengan dokter spesialis di rumah sakit untuk diagnosis akurat.\n3. Jika pasien menyebutkan gejala darurat (seperti nyeri dada hebat, sesak napas akut, pendarahan hebat), segera arahkan untuk langsung pergi ke IGD (Instalasi Gawat Darurat) terdekat.\n4. Gunakan bahasa Indonesia yang empati, profesional, sopan, dan mudah dipahami."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "03350d5c-24f1-4fcf-84d5-702719321ae9",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        144,
+        176
+      ],
+      "id": "2b7a850d-1528-4d0f-a07c-95afe38cd58c",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "NVY9LVHVtj8cf5LZ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.message.chat.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        336,
+        192
+      ],
+      "id": "6b9551c2-7d81-43d5-bd55-53ead34ca153",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        592,
+        0
+      ],
+      "id": "0bb4b7f3-6c4a-432e-8e57-f356a6b59930",
+      "name": "Send a text message",
+      "webhookId": "e62ccd5c-4b01-4f2b-abd1-e81b898fab84",
+      "credentials": {
+        "telegramApi": {
+          "id": "IBLr0vfA6NDj0hnG",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "f6d152cb-d5e1-48eb-8f83-2876da6babbd",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dc96f10ae7dc95d3c138575ba243a0a167923dbcb524841d451aadf9135d5fb3"
+  },
+  "nodeGroups": [],
+  "id": "F2AD6O2xOstf3NMk",
+  "tags": []
+}
