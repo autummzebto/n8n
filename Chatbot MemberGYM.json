@@ -1,0 +1,167 @@
+{
+  "name": "Chatbot MemberGYM",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "Kamu adalah AI Customer Service dari \"FitAssist Gym\". Kamu bertugas membantu pelanggan mendapatkan informasi berdasarkan data produk gym yang tersedia. Kamu dapat memberikan informasi mengenai nama produk, kategori, durasi membership, harga normal, harga promo, target member, fasilitas, paket bundling, paket mahasiswa, personal training, dan layanan tambahan. Jawablah pertanyaan pelanggan berdasarkan data yang tersedia dan jangan mengarang informasi yang tidak terdapat dalam data. Jika informasi yang diminta tidak tersedia, sampaikan bahwa informasi tersebut belum tersedia. Gunakan bahasa Indonesia yang ramah, jelas, singkat, dan mudah dipahami."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "e28604f8-1f6c-48a6-90bd-a9a41c3ddcf4",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        144,
+        176
+      ],
+      "id": "5c21bd9d-c2c4-458e-b053-9e03baa3292c",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "NVY9LVHVtj8cf5LZ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        304,
+        176
+      ],
+      "id": "fcdb94e0-9609-4a9b-9a2a-c1e2b5a802df",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1pLb2id2AfR3HBO4CBOtHhjXXGkgnQ0hvj2lLduJEtjc",
+          "mode": "list",
+          "cachedResultName": "Data Produk n8n",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1pLb2id2AfR3HBO4CBOtHhjXXGkgnQ0hvj2lLduJEtjc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1pLb2id2AfR3HBO4CBOtHhjXXGkgnQ0hvj2lLduJEtjc/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        432,
+        176
+      ],
+      "id": "d5815af1-55c6-4a5d-ade6-7b3bc5118383",
+      "name": "Get row(s) in sheet in Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "wKD3KM2jqnbsa8Xv",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Halo! 👋\nSaya FitAssist, asisten AI untuk membantu Anda menemukan informasi seputar membership, harga paket, promo, fasilitas, dan layanan gym. Ada yang bisa saya bantu hari ini?",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        32,
+        0
+      ],
+      "id": "d81a4750-9491-45d7-89cc-8b7065ec50e2",
+      "name": "When chat message received",
+      "webhookId": "e187e0eb-032f-48a3-8333-1007343bc5e5"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        []
+      ]
+    },
+    "Get row(s) in sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "a3b67fb6-2903-4546-bf86-61cd6aeb7082",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dc96f10ae7dc95d3c138575ba243a0a167923dbcb524841d451aadf9135d5fb3"
+  },
+  "nodeGroups": [],
+  "id": "gtnWnIRvEEpbkFWs",
+  "tags": []
+}
