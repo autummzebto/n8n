@@ -1,0 +1,110 @@
+{
+  "name": "Auto Responder Email",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Pendaftaran SIB Mandiri NF Academy Batch 4",
+        "formDescription": "Silakan isi formulir di bawah ini untuk pendaftaran.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Nama",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Kelas",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "AI for Business"
+                  },
+                  {
+                    "option": "Codeless Data Science"
+                  },
+                  {
+                    "option": "DevOps Engineer"
+                  },
+                  {
+                    "option": "Digital Marketing"
+                  },
+                  {
+                    "option": "Fullstack Developer"
+                  },
+                  {
+                    "option": "Mobile Apps Developer"
+                  }
+                ]
+              },
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        608,
+        -144
+      ],
+      "id": "c96494f8-689a-4c48-bbbb-a1b423947c29",
+      "name": "On form submission",
+      "webhookId": "016f179f-d6af-47ce-b23d-1067d18fcd42"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.Email }}",
+        "subject": "Informasi Pendaftaran SIBM NF Academy Batch 4",
+        "message": "={{ `<!DOCTYPE html>\n<html>\n<head>\n<style>\n/* Reset dasar untuk kompatibilitas email client */\nbody { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0ebf8; }\n.container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }\n.header { background-color: #673ab7; color: #ffffff; padding: 24px; text-align: center; }\n.header h1 { margin: 0; font-size: 20px; font-weight: 600; }\n.content { padding: 30px; color: #333333; line-height: 1.6; }\n.data-box { background-color: #f8f9fa; border-left: 4px solid #673ab7; padding: 15px; margin: 20px 0; border-radius: 4px; }\n.data-row { margin-bottom: 10px; }\n.label { font-weight: bold; color: #5f6368; font-size: 14px; }\n.value { color: #202124; font-size: 16px; }\n.footer { background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #888888; border-top: 1px solid #eeeeee; }\n</style>\n</head>\n<body>\n<div class=\"container\">\n<div class=\"header\">\n<h1>Konfirmasi Pendaftaran<br>SIB Mandiri Batch 4 NF Academy</h1>\n</div>\n<div class=\"content\">\n<p>Halo <strong>${$json.Nama}</strong>,</p>\n<p>Terima kasih telah melakukan pendaftaran. Data Anda telah berhasil kami terima di sistem NF Academy.</p>\n<p>Berikut adalah rincian data yang Anda kirimkan:</p>\n<div class=\"data-box\">\n<div class=\"data-row\">\n<div class=\"label\">Nama Lengkap</div>\n<div class=\"value\">${$json.Nama}</div>\n</div>\n<div class=\"data-row\">\n<div class=\"label\">Email Terdaftar</div>\n<div class=\"value\">${$json.Email}</div>\n</div>\n<div class=\"data-row\">\n<div class=\"label\">Kelas Pilihan</div>\n<div class=\"value\">${$json.Kelas}</div>\n</div>\n</div>\n<p>Mohon cek kembali data di atas. Jika ada kesalahan atau pertanyaan lebih lanjut, silakan balas email ini.</p>\n<p>Selanjutnya, tim kami akan melakukan verifikasi dan menghubungi Anda untuk langkah berikutnya.</p>\n<br>\n<p>Salam hangat, <br><strong>Tim Penerimaan NF Academy</strong></p>\n</div>\n<div class=\"footer\">\n&copy; 2025 NF Academy. All rights reserved.<br>\nEmail ini dikirim secara otomatis melalui sistem pendaftaran.\n</div>\n</div>\n</body>\n</html>` }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        752,
+        -144
+      ],
+      "id": "72c4e7e5-5d8d-4d16-ad36-0feec87545d3",
+      "name": "Send a message",
+      "webhookId": "100444ea-ef81-4dcf-b54b-20d4328b079a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "XaaTQorv78LNCvBE",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "786658ce-0b5b-46d5-8c52-64b1e3f9f881",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dc96f10ae7dc95d3c138575ba243a0a167923dbcb524841d451aadf9135d5fb3"
+  },
+  "nodeGroups": [],
+  "id": "pMZUb6qlDDABtduj",
+  "tags": []
+}

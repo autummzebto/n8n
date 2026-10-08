@@ -1,0 +1,451 @@
+{
+  "name": "AI Image Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Generate Gambar Konten Otomatis",
+        "formDescription": "Silakan masukkan prompt, task type, dan API key Anda.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "prompt",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "task_type",
+              "defaultValue": "mj_txt2img",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "api_key",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -912,
+        160
+      ],
+      "id": "c77f0b0e-cfb7-4603-9573-398c1e04c075",
+      "name": "Submit Text Prompt untuk Generate Gambar",
+      "webhookId": "e922d0ec-40e2-4ac1-8213-f88f8c2f1317"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kie.ai/api/v1/jobs/createTask",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('Submit Text Prompt untuk Generate Gambar').first().json.api_key }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { model: 'grok-imagine/text-to-image', input: { prompt: $('Submit Text Prompt untuk Generate Gambar').first().json.prompt, aspect_ratio: '3:2' } } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -720,
+        160
+      ],
+      "id": "8de7546c-f1b6-40d0-8ec2-0327dd559c6c",
+      "name": "Mengirim Image Generation Request ke API"
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -512,
+        160
+      ],
+      "id": "6a383fee-bcb1-4d79-bc7b-bb8477d46c17",
+      "name": "Menunggu Proses Generate Gambar",
+      "webhookId": "48a30b2c-982c-4720-83a9-ab30cc2391c9"
+    },
+    {
+      "parameters": {
+        "url": "https://api.kie.ai/api/v1/jobs/recordInfo",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "taskId",
+              "value": "={{ $('Mengirim Image Generation Request ke API').first().json.data.taskId }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('Submit Text Prompt untuk Generate Gambar').first().json.api_key }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -352,
+        160
+      ],
+      "id": "3ac3b959-a7e0-48b3-98bc-b4d8a842b14a",
+      "name": "Mendapatkan Status Generate"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cond_1",
+              "leftValue": "={{$json.data.state}}",
+              "rightValue": "success",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -128,
+        144
+      ],
+      "id": "39af57bf-0b25-497d-9361-3627bebb24b9",
+      "name": "Check Jika Generate Sudah Selesai"
+    },
+    {
+      "parameters": {
+        "jsCode": "const resultJson = $json.data?.resultJson;\nif (!resultJson) {\n  throw new Error('KIE.ai mengembalikan status success tetapi resultJson kosong.');\n}\nconst result = typeof resultJson === 'string' ? JSON.parse(resultJson) : resultJson;\nconst urls = Array.isArray(result?.resultUrls) ? result.resultUrls : [];\nif (!urls.length) {\n  throw new Error('KIE.ai mengembalikan success tetapi tidak ada resultUrls.');\n}\nreturn [{\n  json: {\n    img1: urls[0] || null,\n    img2: urls[1] || null,\n    img3: urls[2] || null,\n    img4: urls[3] || null,\n    resultUrls: urls\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        48,
+        64
+      ],
+      "id": "76a89284-43fd-469e-b667-f20e9b78a166",
+      "name": "Format Result"
+    },
+    {
+      "parameters": {
+        "jsCode": "const urls = $json.resultUrls || [\n  $json.img1,\n  $json.img2,\n  $json.img3,\n  $json.img4\n].filter(Boolean);\nreturn urls.map((url, index) => ({\n  json: {\n    url,\n    index: index + 1\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        192,
+        64
+      ],
+      "id": "14c80267-6e2e-4266-b2f6-6913826faaeb",
+      "name": "Loop Image"
+    },
+    {
+      "parameters": {
+        "url": "={{$json.url}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        336,
+        64
+      ],
+      "id": "a6d71c25-bbef-4d59-bb2a-f7bcfbc22849",
+      "name": "Download Gambar"
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "6710106500",
+        "binaryData": true,
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        496,
+        64
+      ],
+      "id": "0443725f-ff0e-45fc-b618-d6b2a1e8cf93",
+      "name": "Kirim Hasil Generate",
+      "webhookId": "1aa6c26c-580d-4bc4-9a82-48a4f175eff3",
+      "credentials": {
+        "telegramApi": {
+          "id": "IBLr0vfA6NDj0hnG",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "state-is-fail",
+              "leftValue": "={{ $json.data.state }}",
+              "rightValue": "fail",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "e266b838-52b8-43bf-9cfb-45f8d2d41c03",
+      "name": "Task Failed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -240,
+        -16
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $input.first().json.data || {};\nthrow new Error(`KIE task gagal. state=${d.state || 'unknown'}; failCode=${d.failCode || 'n/a'}; failMsg=${d.failMsg || 'Tidak ada detail error'}`);"
+      },
+      "id": "21a5334a-136e-43ca-950d-44bcc8010a61",
+      "name": "Stop: Generation Failed",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -32,
+        -96
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "poll-limit",
+              "leftValue": "={{ $runIndex }}",
+              "rightValue": 60,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b03ca5f0-3343-4806-a1df-7768bb6b86d0",
+      "name": "Polling Limit Reached? (max ~10 min)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        48,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "throw new Error('Timeout: task belum success setelah sekitar 10 menit (60 polling x 10 detik). Periksa state, progress, failCode/failMsg pada node Mendapatkan Status Generate dan cek status task di KIE.ai.');"
+      },
+      "id": "4e6c90a7-92b7-4989-bb35-f8a6d6ba36f4",
+      "name": "Stop: Polling Timeout",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        256,
+        224
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Submit Text Prompt untuk Generate Gambar": {
+      "main": [
+        [
+          {
+            "node": "Mengirim Image Generation Request ke API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mengirim Image Generation Request ke API": {
+      "main": [
+        [
+          {
+            "node": "Menunggu Proses Generate Gambar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Menunggu Proses Generate Gambar": {
+      "main": [
+        [
+          {
+            "node": "Mendapatkan Status Generate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mendapatkan Status Generate": {
+      "main": [
+        [
+          {
+            "node": "Task Failed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Jika Generate Sudah Selesai": {
+      "main": [
+        [
+          {
+            "node": "Format Result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Polling Limit Reached? (max ~10 min)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Result": {
+      "main": [
+        [
+          {
+            "node": "Loop Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Image": {
+      "main": [
+        [
+          {
+            "node": "Download Gambar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Gambar": {
+      "main": [
+        [
+          {
+            "node": "Kirim Hasil Generate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Task Failed?": {
+      "main": [
+        [
+          {
+            "node": "Stop: Generation Failed",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check Jika Generate Sudah Selesai",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Polling Limit Reached? (max ~10 min)": {
+      "main": [
+        [
+          {
+            "node": "Stop: Polling Timeout",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Menunggu Proses Generate Gambar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e94b3949-f740-4ada-8bfe-da3cd17a0ab5",
+  "meta": {
+    "instanceId": "dc96f10ae7dc95d3c138575ba243a0a167923dbcb524841d451aadf9135d5fb3"
+  },
+  "nodeGroups": [],
+  "id": "AD5VC6fcUnAy4Udj",
+  "tags": []
+}
